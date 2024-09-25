@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment Form</title>
+    
+</head>
+<body>
+    <form id="paymentForm" action="{% url 'initiate_payment' %}" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="order_id" value="{{ order_id }}">
+        <input type="hidden" name="amount" value="{{ amount }}">
+        <input type="hidden" name="currency" value="{{ currency }}">
+        <button type="submit">Pay Now</button>
+    </form>
+
+    <!-- Include jQuery for AJAX handling (if using AJAX for form submission) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#paymentForm').submit(function(event) {
+                event.preventDefault();
+
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'initiate_payment' %}",
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        // Handle success, redirect to Razorpay checkout or do something with response
+                        console.log(response);
+                        // Example: redirect to Razorpay checkout page
+                        window.location.href = 'https://checkout.razorpay.com/v1/checkout.js?order_id=' + response.order_id;
+                    },
+                    error: function(error) {
+                        // Handle errors, show error message
+                        console.log(error.responseJSON);
+                        alert('Error occurred during payment initiation!');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

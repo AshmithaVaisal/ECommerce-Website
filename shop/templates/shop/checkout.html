@@ -1,0 +1,178 @@
+{% extends 'shop/layouts/main.html' %}
+
+{% block title %}
+    Checkout | ClicknBuy
+{% endblock title %}
+
+{% block content %}
+<section class="bg-light py-4 my-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h4 class="mb-3">Checkout</h4>
+                <hr style="border-color: #b8bfc2;">
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title card-header bg-info text-white py-2">Order Summary</h5>
+                        <hr>
+                        <div class="order-summary-items">
+                            {% for item in cart %}
+                            <div class="order-item mb-3">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <img src="{{ item.product.product_image.url }}" height="90px" alt="{{ item.product.name }}">
+                                        <p class="mb-1">{{ item.product.name }}</p>
+                                    </div>
+                                    <div class="col-4 d-flex align-items-end">
+                                        <div>
+                                            
+                                            <p class="mb-1"><b>RS: {{ item.total_cost | stringformat:'d' }}</b></p>
+                                            <p class="mb-1">Qty: {{ item.product_qty }}</p>
+                                        </div>
+                                       
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                            {% endfor %}
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card ">
+                    <div class="card-body">
+                        <h5 class="card-title card-header bg-info text-white ">Summary Details</h5>
+                        <hr>
+                        <div class="text-right">
+                            <p><b >Subtotal:</b> RS: {{ total_amount | stringformat:'d' }}</p>
+                            <p><b>Shipping:</b> RS: 0.00</p>
+                            <hr style="border-top: 1px solid #b8bfc2;">
+                            <h6><b style="color: blue;">Total Amount:</b> RS: {{ total_amount | stringformat:'d' }}</h6>
+                        </div>
+                    </div>
+                </div>
+                <!-- Razorpay Payment Redirect
+                <div class="bg-light py-5">
+                    <div class="card">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-12">
+                                <div class="card-lg border-0">
+                                    <div class="card-header bg-info text-white py-2">
+                                        <h5 class="card-title mb-0">Proceed to Payment</h5>
+                                    </div>
+                                    <div class="card-body p-5">
+                                        <p>Total Amount: ₹{{ total_amount }}</p>
+                                        <a href="{{ razorpay_payment_link }}" class="btn btn-primary">Proceed to Pay</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
+
+                <!-- form  -->
+                <div class="bg-light py-5">
+                    <div class="card">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-12">
+                                <div class="card-lg border-0">
+                                    <div class="card-header bg-info text-white py-2">
+                                        <h5 class="card-title mb-0">Customer Information</h5>
+                                    </div>
+                                    <div class="card-body p-5">
+                                        <form method="POST" action="{% url 'initiate_payment' %}">
+                                            {% csrf_token %}
+                                            <div class="form-group row mb-4">
+                                                <label for="{{ customer_form.name.id_for_label }}" class="col-sm-3 col-form-label">Name</label>
+                                                <div class="col-sm-9">
+                                                    {{ customer_form.name }}
+                                                </div>
+                                            </div>
+                                            <div class="form-group row mb-4">
+                                                <label for="{{ customer_form.email.id_for_label }}" class="col-sm-3 col-form-label">Email Address</label>
+                                                <div class="col-sm-9">
+                                                    {{ customer_form.email }}
+                                                </div>
+                                            </div>
+                                            <div class="form-group row mb-4">
+                                                <label for="{{ customer_form.location.id_for_label }}" class="col-sm-3 col-form-label">Location</label>
+                                                <div class="col-sm-9">
+                                                    {{ customer_form.location }}
+                                                </div>
+                                            </div>
+                                            <div class="form-group row mb-4">
+                                                <label for="{{ customer_form.shipping_address.id_for_label }}" class="col-sm-3 col-form-label">Shipping Address</label>
+                                                <div class="col-sm-9">
+                                                    {{ customer_form.shipping_address }}
+                                                </div>
+                                            </div>
+                                            <div class="d-grid gap-2">
+                                                <input type="hidden" id="amount" name="amount" value="{{ total_amount }}">
+                                                <button type="submit">Pay Now</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>    
+
+</section>
+</section>
+
+{% block scripts %}
+<script>
+    function handlePayment() {
+        var form = document.getElementById('checkout-form');
+        var formData = new FormData(form);
+    
+        fetch('/initiate_payment/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Error initiating payment: ' + data.error);
+            } else {
+                var options = {
+                    key: 'YOUR_RAZORPAY_KEY_ID',  // Replace with your actual Razorpay key
+                    amount: data.amount * 100,  // Amount in paisa
+                    currency: 'INR',
+                    order_id: data.order_id,
+                    handler: function(response) {
+                        // Handle payment success, failure, or redirection here
+                        console.log(response);
+                    },
+                    prefill: {
+                        name: 'Customer Name',
+                        email: 'customer@example.com',
+                        contact: '9999999999'
+                    },
+                    theme: {
+                        color: '#F37254'  // Optional theme color
+                    }
+                };
+                var rzp = new Razorpay(options);
+                rzp.open();
+            }
+        })
+        .catch(error => {
+            console.error('Error initiating payment:', error);
+            alert('Error initiating payment');
+        });
+    }
+    </script>
+
+{% endblock %}
+{% endblock content %}
+

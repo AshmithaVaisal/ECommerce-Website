@@ -1,0 +1,128 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container">
+      <a class="navbar-brand" href="{% url 'home' %}">ClicknBuy</a></i>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <div class="navbar-nav ms-auto">
+
+          <a class="nav-link" aria-current="page" href="{% url 'home' %}"><i class="fa fa-home"></i> Home</a>
+          {% if request.user.is_authenticated %}
+            <a class="nav-link" aria-current="page" href="#"><i class="fa fa-user"></i>{{ request.user }}</a>
+            <a class="nav-link" aria-current="page" href="{% url 'logout' %}"><i class="fa fa-sign-out"></i>Logout</a>
+          {% else %}
+            <a class="nav-link" href="{% url 'login' %}"><i class="fa fa-sign-in"></i>Login</a>
+            <a class="nav-link" href="{% url 'register' %}"><i class="fa fa-users"></i>Register</a>
+          {% endif %}  
+            <a class="nav-link" href="{% url 'collections' %}"><i class="fa fa-cubes"></i>Collections</a>
+            <a class="nav-link" href="{% url 'cart' %}"><i class="fa fa-shopping-cart"></i>Cart <span id="cart-count" class="badge bg-danger">{{ cart_item_count }}</span></a>
+            <a class="nav-link" href="{% url 'favviewpage' %}"><i class="fa fa-heart"></i>Favourites <span id="fav-count" class="badge bg-danger">0</span></a>
+            <!-- ashmitha added a if block -->
+
+          
+         
+        </div>
+      </div>
+    </div>
+  </nav>
+  <!-- ashmitha here made the changes and in the top near shopping cart span  -->
+  <script>
+    // JavaScript to update cart count dynamically
+    // function updateCartCount() {
+    //     fetch('/get_cart_count/')  // URL to fetch cart count, adjust as per your project
+    //         .then(response => response.json())
+    //         .then(data => {
+    //             document.getElementById('cart-count').innerText = data.cart_count;
+    //         });
+    // }
+
+
+    // Call updateCartCount() after adding product to cart (handle this in your add to cart form submission)
+
+    // ashmitha added updateFavCount
+    function updateFavCount() {
+        fetch('/get_favourite_count/')  // URL to fetch favorite count, adjust as per your project
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('fav-count').innerText = data.fav_count;
+            });
+    }
+
+// // ashmitha added new changes
+      function updateCartCount() {
+          fetch("{% url 'cart_count' %}")
+              .then(response => response.json())
+              .then(data => {
+                  document.getElementById('cart-count').textContent = data.cart_item_count;
+              });
+      }
+
+      function addToCart(productId, productQty) {
+          fetch("{% url 'add_to_cart' %}", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+                  "X-Requested-With": "XMLHttpRequest",
+                  "X-CSRFToken": "{{ csrf_token }}"
+              },
+              body: JSON.stringify({ pid: productId, product_qty: productQty })
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.status === 'Product added to cart') {
+                  updateCartCount();
+              } else {
+                  alert(data.status); // Show the status message
+              }
+          });
+      }
+ 
+// function addToCart(productId, productQty) {
+//     fetch("{% url 'add_to_cart' %}", {
+//         method: "POST",
+//         headers: {
+//             "Content-Type": "application/json",
+//             "X-Requested-With": "XMLHttpRequest",
+//             "X-CSRFToken": "{{ csrf_token }}"
+//         },
+//         body: JSON.stringify({ pid: productId, product_qty: productQty })
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+//         if (data.status === 'Product added to cart') {
+//             updateCartCount();
+//         } else {
+//             alert(data.status); // Show the status message
+//         }
+//     });
+// }
+
+
+// // ashmitha new try:
+// function addToCart(productId, productQty) {
+//     fetch("{% url 'add_to_cart' %}", {
+//         method: "POST",
+//         headers: {
+//             "Content-Type": "application/json",
+//             "X-Requested-With": "XMLHttpRequest", // Ensure this header is included
+//             "X-CSRFToken": "{{ csrf_token }}"     // Ensure CSRF token is included
+//         },
+//         body: JSON.stringify({ pid: productId, product_qty: productQty })
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+//         if (data.status === 'Product added to cart') {
+//             updateCartCount();  // Example function to update cart count
+//         } else {
+//             alert(data.status); // Show the status message
+//         }
+//     })
+//     .catch(error => {
+//         console.error('Error:', error);
+//     });
+// }
+
+
+
+</script>
